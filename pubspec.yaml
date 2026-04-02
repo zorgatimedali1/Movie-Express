@@ -1,0 +1,34 @@
+name: movierec_express
+description: MovieRec Express – AI Movie Recommendation App with Supabase backend.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # ── Backend ──────────────────────────────────────────
+  supabase_flutter: ^2.5.6
+
+  # ── State Management ─────────────────────────────────
+  flutter_riverpod: ^2.5.1
+
+  # ── Local Cache ──────────────────────────────────────
+  shared_preferences: ^2.2.3
+
+  # ── UI ───────────────────────────────────────────────
+  flutter_rating_bar: ^4.0.1
+  fl_chart: ^0.67.0
+  cached_network_image: ^3.3.1
+  shimmer: ^3.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
