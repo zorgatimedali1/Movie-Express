@@ -1,7 +1,8 @@
-# 🎬 MovieRec Express — v2 (Supabase Edition)
+# 🎬 MovieRec Express — v3 (Supabase + CineBot AI Edition)
 
 > Mini Projet Individuel — Module Développement Mobile Cross-Plateforme (Flutter)  
-> Backend : **Supabase** · Auth · PostgreSQL · Row Level Security
+> Backend : **Supabase** · Auth · PostgreSQL · Row Level Security  
+> AI Chatbot : **CineBot** powered by **Groq** (Llama 3.1)
 
 ---
 
@@ -11,7 +12,90 @@
 - Les films (60) avec **vraies affiches** (TMDB) sont stockés dans **Supabase** (PostgreSQL).
 - L'authentification est gérée par **Supabase Auth** (JWT).
 - Les favoris et notes sont **synchronisés en ligne** via Supabase.
-- L'algorithme de recommandation **Content-Based Filtering** tourne en local, en utilisant les genres **et les acteurs** comme signaux.
+- L'algorithme de recommandation **Content-Based Filtering** tourne en local.
+- **CineBot** — un assistant cinéma IA intégré, propulsé par Groq (Llama 3.1 8B).
+
+---
+
+## 🤖 CineBot — Assistant Cinéma IA
+
+### Présentation
+
+CineBot est un chatbot conversationnel intégré directement dans l'application. Il permet à l'utilisateur de trouver des films par la conversation naturelle : humeur, thème, genre, acteur, ou même avec des fautes de frappe.
+
+### Comment ça marche
+
+```
+Utilisateur tape un message
+        │
+        ▼
+chatProvider récupère la liste complète des films (moviesProvider)
+        │
+        ▼
+Les films sont convertis en contexte texte et envoyés à Groq API
+        │
+        ▼
+Groq (Llama 3.1 8B) analyse le message + catalogue + historique
+        │
+        ▼
+Réponse en français avec jusqu'à 3 recommandations du catalogue
+```
+
+### Architecture CineBot
+
+```
+lib/
+├── chat/
+│   ├── models/
+│   │   └── chat_message.dart         # Modèle message (role: user/assistant)
+│   ├── providers/
+│   │   └── chat_provider.dart        # StateNotifier + injection movies + historique
+│   └── screens/
+│       └── chat_screen.dart          # UI du chatbot
+│
+└── core/
+    └── services/
+        └── ai_service.dart           # Appel direct Groq API (HTTP)
+```
+
+### Flux technique détaillé
+
+1. **`moviesProvider`** charge tous les films depuis Supabase au démarrage
+2. **`chatProvider`** observe `moviesProvider` et convertit les films en `List<Map>` avec titre, année, genres, rating, overview
+3. À chaque message utilisateur, `ChatNotifier.sendMessage()` :
+   - Ajoute le message utilisateur + un bubble de chargement
+   - Construit l'historique de conversation (tous les messages précédents)
+   - Appelle `AIService.chatWithMovieAssistant()` avec le message, le catalogue et l'historique
+4. **`AIService`** construit le prompt système avec le catalogue complet, puis envoie à **Groq API** (`/openai/v1/chat/completions`) avec le modèle `llama-3.1-8b-instant`
+5. La réponse remplace le bubble de chargement
+
+### Capacités de CineBot
+
+| Capacité | Exemple |
+|---|---|
+| Recherche par genre | "Je veux un thriller" |
+| Recherche par humeur | "Un film pour pleurer" |
+| Tolérance aux fautes | "comdie romantike" → comprend comédie romantique |
+| Contexte conversationnel | Se souvient des échanges précédents |
+| Recherche par acteur | "Un film avec Leonardo DiCaprio" |
+| Recherche par thème | "Un film sur la guerre froide" |
+| Fallback honnête | Indique si aucun film ne correspond |
+
+### Pourquoi Groq ?
+
+- **100% gratuit** pour usage personnel (14 400 req/jour)
+- **Ultra rapide** — inférence sur hardware dédié (< 1s de réponse)
+- **API OpenAI-compatible** — format standard `chat/completions`
+- **Llama 3.1 8B** — modèle open-source intelligent, multilingue, tolère les fautes
+
+### Configuration
+
+```dart
+// lib/core/constants/app_constants.dart
+static const String groqApiKey = 'gsk_your_key_here';
+```
+
+Obtenir une clé gratuite : [console.groq.com/keys](https://console.groq.com/keys)
 
 ---
 
@@ -21,11 +105,21 @@
 lib/
 ├── core/
 │   ├── constants/
-│   │   └── app_constants.dart        # URL Supabase, clés, noms tables, genres
+│   │   └── app_constants.dart        # URL Supabase, clés API (Supabase + Groq), genres
+│   ├── services/
+│   │   └── ai_service.dart           # Appel Groq API direct (HTTP, OpenAI-compatible)
 │   ├── theme/
 │   │   └── app_theme.dart            # Thème sombre Material 3
 │   └── utils/
 │       └── supabase_service.dart     # Singleton client Supabase
+│
+├── chat/
+│   ├── models/
+│   │   └── chat_message.dart         # Modèle message (role, content, isLoading)
+│   ├── providers/
+│   │   └── chat_provider.dart        # ChatNotifier + injection catalogue films
+│   └── screens/
+│       └── chat_screen.dart          # UI CineBot
 │
 ├── features/
 │   ├── auth/
@@ -35,7 +129,7 @@ lib/
 │   │   │   ├── login_screen.dart
 │   │   │   └── register_screen.dart
 │   │   └── widgets/
-│   │       └── auth_text_field.dart  # Widget réutilisable
+│   │       └── auth_text_field.dart
 │   │
 │   └── movies/
 │       ├── models/
@@ -45,13 +139,13 @@ lib/
 │       │   └── favorites_provider.dart    # Favoris, notes, algo IA, stats
 │       ├── screens/
 │       │   ├── home_screen.dart      # 4 onglets : Movies/ForYou/Favorites/Profile
-│       │   ├── movie_detail_screen.dart   # Détail + cast + notation
+│       │   ├── movie_detail_screen.dart
 │       │   └── favorites_screen.dart
 │       └── widgets/
-│           ├── movie_card.dart       # Carte avec vraie affiche (cached_network_image)
-│           └── genre_chip.dart       # Chip genre animé
+│           ├── movie_card.dart
+│           └── genre_chip.dart
 │
-└── main.dart                         # Supabase.initialize() + ProviderScope + AppGate
+└── main.dart
 ```
 
 ---
@@ -144,6 +238,7 @@ for (final a in movie.actors) {
 |---|---|
 | `supabase_flutter ^2.5.6` | Auth + DB + Realtime |
 | `flutter_riverpod ^2.5.1` | Gestion d'état (StateNotifier, Provider) |
+| `http ^1.2.1` | Appels HTTP directs vers Groq API |
 | `shared_preferences ^2.2.3` | Cache local léger |
 | `cached_network_image ^3.3.1` | Affiches TMDB avec cache |
 | `shimmer ^3.0.0` | Effet skeleton loading |
@@ -202,6 +297,13 @@ Launch → AppGate
                                ├── Cast (acteurs scrollable)
                                ├── Overview
                                └── Rating ★ → améliore les recommandations
+
+  FAB / Tab CineBot → ChatScreen
+              ├── Message de bienvenue CineBot
+              ├── Suggestions rapides (chips)
+              ├── Conversation libre en français
+              │     └── Groq API (Llama 3.1) → recommandations depuis le catalogue
+              └── Bouton clear conversation
 ```
 
 ---
@@ -218,17 +320,3 @@ flutter pub get
 # 3. Lancer
 flutter run
 
-# Plateformes supportées : Android · iOS · Web
-```
-
-> Les credentials Supabase sont déjà configurés dans `app_constants.dart`.  
-> La base de données et les 60 films sont déjà insérés.
-
----
-
-## 👨‍💻 Auteur
-
-Projet réalisé dans le cadre du module **Développement Mobile Cross-Plateforme** — Flutter  
-Évaluation finale : Mini Projet Individuel — *MovieRec Express v2 (Supabase Edition)*
-#   m o v i e R e c o m m a n d e d S y s t e m  
- 

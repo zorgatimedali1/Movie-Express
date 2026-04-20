@@ -18,6 +18,8 @@ class MoviesState {
     this.error,
   });
 
+  Object? get valueOrNull => null;
+
   MoviesState copyWith({
     List<Movie>? allMovies,
     bool? isLoading,

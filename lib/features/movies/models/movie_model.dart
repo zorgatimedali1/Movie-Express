@@ -50,6 +50,19 @@ class Movie {
     return [];
   }
 
+  Map<String, dynamic> toMap() => {
+        'id': id,
+        'title': title,
+        'genres': genres,
+        'actors': actors,
+        'director': director,
+        'year': year,
+        'rating': rating,
+        'overview': overview,
+        'poster_url': posterUrl,
+        'backdrop_url': backdropUrl,
+      };
+
   @override
   bool operator ==(Object other) => other is Movie && other.id == id;
 

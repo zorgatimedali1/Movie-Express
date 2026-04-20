@@ -1,0 +1,9 @@
+# Link with: supabase link --project-ref pbyklrjylelfkmgmadpg
+project_id = "pbyklrjylelfkmgmadpg"
+
+# Gateway JWT check often returns 401 with newer keys / user tokens; auth is enforced in code.
+[functions.clever-processor]
+verify_jwt = false
+
+[functions.clever-processor]
+verify_jwt = false

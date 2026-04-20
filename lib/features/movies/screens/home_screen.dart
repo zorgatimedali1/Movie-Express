@@ -11,6 +11,7 @@ import '../widgets/movie_card.dart';
 import '../widgets/genre_chip.dart';
 import 'movie_detail_screen.dart';
 import 'favorites_screen.dart';
+import '../../../chat/screens/chat_screen.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/app_theme.dart';
@@ -39,6 +40,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           title: const Text('🎬 MovieRec Express'),
         ),
         body: IndexedStack(index: _tab, children: _tabs),
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const ChatScreen()),
+          ),
+          icon: const Icon(Icons.smart_toy),
+          label: const Text('CineBot'),
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
         bottomNavigationBar: BottomNavigationBar(
           currentIndex: _tab,
           onTap: (i) => setState(() => _tab = i),
