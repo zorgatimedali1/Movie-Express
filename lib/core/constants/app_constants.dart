@@ -4,9 +4,9 @@ class AppConstants {
   AppConstants._();
 
   // ── Supabase ──────────────────────────────────────────────────────────────
-  static const String supabaseUrl = 'https://pbyklrjylelfkmgmadpg.supabase.co';
+  static const String supabaseUrl = '';
   static const String supabaseAnonKey =
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBieWtscmp5bGVsZmttZ21hZHBnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4NjQ3MjUsImV4cCI6MjA5MDQ0MDcyNX0.nliRtcs4H4Fk8N3p2gMfopUcFJ_qmDbZBidN8Ps2Ob0';
+      '';
 
   // ── Gemini API (direct) ───────────────────────────────────────────────────
   static const String geminiApiKey = 'AIzaSyDmEuR-u4kYyqDRik5qxYfr-p-nU__S-mk';
